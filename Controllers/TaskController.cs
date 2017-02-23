@@ -3,21 +3,25 @@ using Microsoft.AspNetCore.Mvc;
 using TodoApp.Models;
 using TodoApp.DataAccess;
 
-namespace TodoApp.Controllers{
+namespace TodoApp.Controllers
+{
     [Route("api/[controller]")]
-    public class TaskController: Controller {
-          
+    public class TaskController: Controller
+    {
         private ITasksRepository repository;
-        public TaskController(){
-            repository = new TasksRepository();
+        public TaskController(ITasksRepository repository)
+        {
+            this.repository = repository;
         }
         [HttpGet]
+        //GET /api/Task
         public List<Task> GetAll()
         {
             return repository.All();
         }
 
-        [HttpGet("{id}", Name = "GetTask")]
+        [HttpGet("{id}")]
+        //GET /api/Task/1
         public IActionResult GetById(int id)
         {
             var task = repository.Get(id);
@@ -28,18 +32,19 @@ namespace TodoApp.Controllers{
             return new ObjectResult(task);
         }
 
+        //POST /api/Task
         [HttpPost]
-        public IActionResult Create([FromBody] Task task)
+        public bool Create([FromBody] Task task)
         {
+            bool created = true;
             if (task == null)
-            {
-                return BadRequest();
-            }
+                return !created;
             task.Id = repository.All().Count + 1;
             repository.Add(task);
-            return CreatedAtRoute("GetTask", new { controller = "Task", id = task.Id }, task);
+            return created;
         }
 
+        //DELETE /api/Task/6
         [HttpDelete("{id}")]
         public void Delete(int id)
         {
